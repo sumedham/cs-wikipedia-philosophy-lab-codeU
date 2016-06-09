@@ -12,8 +12,10 @@ import org.jsoup.select.Elements;
 
 public class WikiPhilosophy {
 	
-	final static WikiFetcher wf = new WikiFetcher();
 	
+	final static List<String> visited = new ArrayList<String>();
+	final static WikiFetcher wf = new WikiFetcher();
+
 	/**
 	 * Tests a conjecture about Wikipedia and Philosophy.
 	 * 
@@ -31,21 +33,50 @@ public class WikiPhilosophy {
 		
         // some example code to get you started
 
-		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
-		Elements paragraphs = wf.fetchWikipedia(url);
-
-		Element firstPara = paragraphs.get(0);
+		String destination = "https://en.wikipedia.org/wiki/Philosophy";
+		String source = "https://en.wikipedia.org/wiki/Java_(programming_language)";
 		
-		Iterable<Node> iter = new WikiNodeIterable(firstPara);
-		for (Node node: iter) {
-			if (node instanceof TextNode) {
-				System.out.print(node);
-			}
-        }
+		testConjecture(destination, source, 8);
 
         // the following throws an exception so the test fails
         // until you update the code
-        String msg = "Complete this lab by adding your code and removing this statement.";
-        throw new UnsupportedOperationException(msg);
+	}
+
+	public static void testConjecture(String destination, String source, int limit) throws IOException {
+		String url = source;
+		for(int i = 0; i<limit; i++) {
+			if(visited.contains(url)) {
+				System.err.println("Exiting because Loop");
+				return;
+			}
+			else {
+				visited.add(url);
+			}
+			Element elt = getFirstValidLink(url);
+			if(elt == null) {
+				System.err.println("No valid Links");
+				return;
+			}
+
+			System.out.println("**" + elt.text() + "**");
+			url = elt.attr("abs:href");
+			if(url.equals(destination)) {
+				System.out.println("Found");
+				break;
+			}
+
+
+
+		}
+	}
+
+	public static Element getFirstValidLink(String url) throws IOException {
+		int num = 0;
+		System.out.println("Fetching..." + num);
+		Elements paragraphs = wf.fetchWikipedia(url);
+		WikiParser wp = new WikiParser(paragraphs);
+		Element elt = wp.findFirstLink();
+		num ++ ;
+		return elt;
 	}
 }
